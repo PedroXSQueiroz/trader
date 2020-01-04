@@ -1,0 +1,43 @@
+[
+	{
+		"name":"NOMRES",
+		"description": "NOME RESUMIDO DA EMPRESA EMISSORA DO PAPEL ",
+		"type":"STRING"
+	},
+	{
+		"name":"MODREF",
+		"description": "MOEDA DE REFERÊNCIA",
+		"type":"STRING"
+	},
+	{
+		"name":"PREABE",
+		"description": "PREÇO DE ABERTURA DO PAPELMERCADO NO PREGÃO",
+		"type":"FLOAT"
+	},
+	{
+		"name":"PREMAX",
+		"description": " PREÇO M�XIMO DO PAPELMERCADO NO PREGÃO",
+		"type":"FLOAT"
+	},
+	{
+		"name":"PREMIN",
+		"description": "PREÇO M�NIMO DO PAPEL- MERCADO NO PREGÃO",
+		"type":"FLOAT"
+	},
+	{
+		"name":"PREULT",
+		"description": "PREÇO DO �LTIMO NEG�CIO DO PAPEL-MERCADO NO PREGÃO",
+		"type":"FLOAT"
+	},
+	{
+		"name":"PREOFC",
+		"description": "PREÇO DA MELHOR OFERTA DE COMPRA DO PAPELMERCADO",
+		"type":"FLOAT"
+	},
+	{
+		"name":"PREOFV",
+		"description": " PREÇO DA MELHOR OFERTA DE VENDA DO PAPELMERCADO",
+		"type":"FLOAT"
+	}
+	
+]
