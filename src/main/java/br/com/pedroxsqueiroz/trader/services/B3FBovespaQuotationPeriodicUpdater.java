@@ -43,6 +43,11 @@ import lombok.extern.java.Log;
 @Log
 public class B3FBovespaQuotationPeriodicUpdater extends AbstractQuotationPeriodicUpdaters {
 
+	
+	private static final Integer REGISTER_TYPE_OFFSET = 0;
+	private static final Integer REGISTER_TYPE_LIMIT = 2;
+	private static final String HISTORIC_SERIES_REGISTER_TYPE = "01";
+	
 	@Autowired
 	private QuotationsService quotationsService;
 	
@@ -79,8 +84,6 @@ public class B3FBovespaQuotationPeriodicUpdater extends AbstractQuotationPeriodi
 			
 			propertiesMappings.put( propertyName, positions );
 		}
-		
-		
 	}
 	
 	@Override
@@ -118,8 +121,14 @@ public class B3FBovespaQuotationPeriodicUpdater extends AbstractQuotationPeriodi
 				
 				for(String currentQuotationContent : quotationsContent) 
 				{
-					QuotationModel currentQuotation = this.deserializeQuotation(currentQuotationContent);
-					quotations.add(currentQuotation);
+					if ( this.isHistoricSeriesRegistry(currentQuotationContent) )
+					{
+
+						QuotationModel currentQuotation = this.deserializeQuotation(currentQuotationContent);
+						quotations.add(currentQuotation);
+						
+					}
+					
 				}
 				
 			}
@@ -132,6 +141,15 @@ public class B3FBovespaQuotationPeriodicUpdater extends AbstractQuotationPeriodi
 		}
 		
 		return null;
+	}
+
+	private boolean isHistoricSeriesRegistry(String currentFileContent) {
+		
+		String registerType = currentFileContent.substring(
+				REGISTER_TYPE_OFFSET, 
+				REGISTER_TYPE_LIMIT);
+		
+		return registerType.equals(HISTORIC_SERIES_REGISTER_TYPE);
 	}
 
 	private QuotationModel deserializeQuotation(String currentQuotationContent) {
