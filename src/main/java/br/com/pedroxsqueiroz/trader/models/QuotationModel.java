@@ -21,7 +21,7 @@ import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import br.com.pedroxsqueiroz.trader.converters.json.QuotationJsonSerializer;
 import lombok.Data;
 
-@Table()
+@Table(name = "quotations")
 @Entity()
 @Data
 @JsonSerialize(using = QuotationJsonSerializer.class)
@@ -29,7 +29,7 @@ public class QuotationModel {
 
 	@Id
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
-	@Column(name = "quotation_id")
+	@Column(name = "id_quotation")
 	private Integer id;
 	
 	@OneToMany(cascade = CascadeType.ALL)

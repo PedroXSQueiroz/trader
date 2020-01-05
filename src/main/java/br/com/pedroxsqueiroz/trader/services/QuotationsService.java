@@ -3,6 +3,7 @@ package br.com.pedroxsqueiroz.trader.services;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
+import java.util.logging.Level;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
@@ -32,14 +33,14 @@ public class QuotationsService {
 	@Scheduled(fixedRate = 1000)
 	public void updateQuotationsPeriodically() 
 	{
-		this.log.fine("Updating quotations");
+		this.log.log( Level.FINE , "Updating quotations");
 		
 		for(AbstractQuotationPeriodicUpdaters updater : this.quotationsPeriodicUpdaters ) 
 		{
 			updater.updateQuotations();
 		}
 		
-		this.log.fine("Finished Updating quotations");
+		this.log.log( Level.FINE,  "Finished Updating quotations");
 	}
 
 	public List<QuotationModel> findWithProperty(QuotationPropertyModel remainingProperty) {

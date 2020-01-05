@@ -9,24 +9,31 @@ import javax.persistence.Table;
 
 import br.com.pedroxsqueiroz.trader.constants.QuotationPropertyTypeEnum;
 import lombok.Data;
+import lombok.EqualsAndHashCode;
 
 @Data
 @Entity
-@Table(name = "quotation_property_model")
+@Table(name = "quotations_properties")
 public class QuotationPropertyModel {
 
 	@Id
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
-	@Column(name = "quotation_property_model_id")
+	@Column(name = "id_quotation_property")
 	private Integer id;
 	
-	@Column(name = "quotation_property_model_name")
+	@Column(name = "quotation_property_name")
 	private String name;
 	
 	@Column(name = "description")
 	private String description;
 	
-	@Column(name = "quotation_property_model_type")
+	@Column(name = "quotation_property_type")
 	private QuotationPropertyTypeEnum type;
+	
+	@Override
+	public int hashCode() 
+	{
+		return this.getName().hashCode();
+	}
 	
 }
