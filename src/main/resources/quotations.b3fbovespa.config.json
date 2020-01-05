@@ -1,42 +1,42 @@
 [
 	{
 		"name":"NOMRES",
-		"offset":"28",
-		"limit":"39"
+		"offset":"27",
+		"limit":"38"
 	},
 	{
 		"name":"MODREF",
-		"offset":"53",
-		"limit":"56"
+		"offset":"52",
+		"limit":"55"
 	},
 	{
 		"name":"PREABE",
-		"offset":"57",
-		"limit":"69"
+		"offset":"56",
+		"limit":"68"
 	},
 	{
 		"name":"PREMAX",
-		"offset":"70",
-		"limit":"82"
+		"offset":"69",
+		"limit":"81"
 	},
 	{
 		"name":"PREMIN",
-		"offset":"83",
-		"limit":"95"
+		"offset":"82",
+		"limit":"94"
 	},
 	{
 		"name":"PREULT",
-		"offset":"109",
-		"limit":"121"
+		"offset":"108",
+		"limit":"120"
 	},
 	{
 		"name":"PREOFC",
-		"offset":"122",
-		"limit":"134"
+		"offset":"121",
+		"limit":"133"
 	},
 	{
 		"name":"PREOFV",
-		"offset":"135",
-		"limit":"147"
+		"offset":"134",
+		"limit":"146"
 	}
 ]
