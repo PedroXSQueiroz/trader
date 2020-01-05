@@ -3,7 +3,10 @@ package br.com.pedroxsqueiroz.trader.converters.json;
 import java.io.IOException;
 import java.util.List;
 
+import org.springframework.boot.jackson.JsonComponent;
+
 import com.fasterxml.jackson.core.JsonGenerator;
+import com.fasterxml.jackson.databind.JsonSerializer;
 import com.fasterxml.jackson.databind.SerializerProvider;
 import com.fasterxml.jackson.databind.ser.std.StdSerializer;
 
@@ -12,16 +15,8 @@ import br.com.pedroxsqueiroz.trader.models.QuotationModel;
 import br.com.pedroxsqueiroz.trader.models.QuotationPropertyModel;
 import br.com.pedroxsqueiroz.trader.models.QuotationPropertyValueModel;
 
-public class QuotationJsonSerializer extends StdSerializer<QuotationModel> {
-
-	public QuotationJsonSerializer() 
-	{
-		this(null);
-	}
-	
-	public QuotationJsonSerializer(Class<QuotationModel> t) {
-		super(t);
-	}
+@JsonComponent
+public class QuotationJsonSerializer extends JsonSerializer<QuotationModel> {
 
 	@Override
 	public void serialize(
@@ -50,7 +45,8 @@ public class QuotationJsonSerializer extends StdSerializer<QuotationModel> {
 			{
 				case FLOAT:
 					
-					gen.writeNumberField(currentPropertyName, Float.parseFloat(currentValue));				
+					float currentValuFloatParsed = currentValue.isEmpty() ? 0 : Float.parseFloat(currentValue);
+					gen.writeNumberField(currentPropertyName, currentValuFloatParsed);				
 					
 					break;
 				
@@ -67,13 +63,6 @@ public class QuotationJsonSerializer extends StdSerializer<QuotationModel> {
 					
 				
 			}
-			
-			if(propertyType == QuotationPropertyTypeEnum.STRING) 
-			{
-				
-			}
-			
-			
 		};
 		
 		gen.writeEndObject();
