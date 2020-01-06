@@ -9,10 +9,7 @@ import java.time.format.DateTimeFormatter;
 import java.time.temporal.TemporalAccessor;
 import java.util.ArrayList;
 import java.util.Date;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
-import java.util.Map.Entry;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
 
@@ -63,11 +60,8 @@ public class B3FBovespaQuotationPeriodicUpdater extends AbstractQuotationPeriodi
 	
 	@Autowired
 	private ResourceLoader resourceLoader;
+
 	
-	private static int OFFSET = 0;
-	private static int LIMIT = 1;
-	
-	private static Map<String, int[]> propertiesMappings = new HashMap<String, int[]>();
 	
 	@PostConstruct
 	public void setupB3FBovespaPeriodicUpdater() throws IOException 
@@ -77,17 +71,6 @@ public class B3FBovespaQuotationPeriodicUpdater extends AbstractQuotationPeriodi
 		
 		ObjectMapper quotationsPropertiesMapper = new ObjectMapper();
 		this.configuration = quotationsPropertiesMapper.readTree(inputStream);
-		
-		for(JsonNode currentMapping : this.configuration) 
-		{
-			int[] positions = new int[2];
-			positions[OFFSET] = currentMapping.get("offset").asInt(); 
-			positions[LIMIT] = currentMapping.get("limit").asInt(); 
-			
-			String propertyName = currentMapping.get("name").asText();
-			
-			propertiesMappings.put( propertyName, positions );
-		}
 	}
 	
 	@Override
