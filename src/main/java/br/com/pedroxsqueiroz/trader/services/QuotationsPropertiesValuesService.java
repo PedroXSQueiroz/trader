@@ -8,6 +8,8 @@ import java.util.Map.Entry;
 import java.util.stream.Collectors;
 
 import javax.persistence.criteria.Expression;
+import javax.persistence.criteria.Join;
+import javax.persistence.criteria.Path;
 import javax.persistence.criteria.Predicate;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -50,12 +52,29 @@ public class QuotationsPropertiesValuesService {
 					for(Entry<String, String> conditional : this.conditionals.entrySet())
 					{
 						String propertyName = conditional.getKey();
+						String propertyValue = conditional.getValue();
+						
+						Join<Object, Object> perQuotationsValueJoin = root
+							.join("quotation")
+							.join("propertiesValues");
+						
+						Path<Object> quotationPropertyName = perQuotationsValueJoin
+							.get("property")
+							.get("name");
+						
+						Path<Object> quotationPropertyValue = perQuotationsValueJoin.get("value");
 						
 						predicates = cb.and(
-								cb.equal(
-									root.get( propertyName ), 
-									conditional.getValue()
-								),
+										cb.and(
+											cb.equal(
+												quotationPropertyName, 
+												propertyName
+											),
+											cb.equal(
+												quotationPropertyValue,
+												propertyValue
+											)
+										),
 								predicates
 							);
 					}
