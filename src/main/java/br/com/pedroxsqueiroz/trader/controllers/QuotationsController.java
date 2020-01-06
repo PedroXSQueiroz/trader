@@ -22,7 +22,7 @@ public class QuotationsController {
 	@GetMapping
 	public Page<QuotationModel> list(
 			@RequestParam(required = false, defaultValue = "0") Integer offset, 
-			@RequestParam(required = false, defaultValue = "15") Integer limit
+			@RequestParam(required = false, defaultValue = "50") Integer limit
 		)
 	{
 		return this.quotationsService.list(offset, limit);

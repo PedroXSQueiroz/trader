@@ -38,6 +38,11 @@
 		"name":"PREOFV",
 		"description": " PREÇO DA MELHOR OFERTA DE VENDA DO PAPELMERCADO",
 		"type":"FLOAT"
+	},
+	{
+		"name":"DTPREG",
+		"description": "DATA DE REGISTRO NO PREGÃO",
+		"type":"DATE"
 	}
 	
 ]

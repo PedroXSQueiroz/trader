@@ -4,20 +4,15 @@ import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
-import java.nio.file.Path;
-import java.nio.file.Paths;
-import java.text.SimpleDateFormat;
 import java.time.LocalDate;
-import java.time.ZoneOffset;
 import java.time.format.DateTimeFormatter;
+import java.time.temporal.TemporalAccessor;
 import java.util.ArrayList;
-import java.util.Calendar;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
-import java.util.logging.Level;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
 
@@ -31,6 +26,7 @@ import org.springframework.core.io.ResourceLoader;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
+import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.client.RestTemplate;
 
 import com.fasterxml.jackson.databind.JsonNode;
@@ -42,14 +38,22 @@ import lombok.extern.java.Log;
 @Service
 @Log
 public class B3FBovespaQuotationPeriodicUpdater extends AbstractQuotationPeriodicUpdaters {
-
+	
 	
 	private static final Integer REGISTER_TYPE_OFFSET = 0;
 	private static final Integer REGISTER_TYPE_LIMIT = 2;
+	private static final Integer INTERVAL_QUOTATIONS_DAYS = 1;
+	private static LocalDate currentQuotationsPullDate;
+	
 	private static final String HISTORIC_SERIES_REGISTER_TYPE = "01";
+	
+	private JsonNode configuration;
 	
 	@Autowired
 	private QuotationsService quotationsService;
+	
+	@Autowired
+	private QuotationsPropertiesValuesService quotationsPropertiesValuesService;
 	
 	@Value(value = "${b3bovespa.root_path}")
 	private String b3BovespaRoot;
@@ -72,9 +76,9 @@ public class B3FBovespaQuotationPeriodicUpdater extends AbstractQuotationPeriodi
 		InputStream inputStream = quotationsConfig.getInputStream();
 		
 		ObjectMapper quotationsPropertiesMapper = new ObjectMapper();
-		JsonNode mappingsJson = quotationsPropertiesMapper.readTree(inputStream);
+		this.configuration = quotationsPropertiesMapper.readTree(inputStream);
 		
-		for(JsonNode currentMapping : mappingsJson) 
+		for(JsonNode currentMapping : this.configuration) 
 		{
 			int[] positions = new int[2];
 			positions[OFFSET] = currentMapping.get("offset").asInt(); 
@@ -91,21 +95,20 @@ public class B3FBovespaQuotationPeriodicUpdater extends AbstractQuotationPeriodi
 		
 		RestTemplate restTemplate = new RestTemplate();
 		
-		LocalDate now = LocalDate.now();
-		LocalDate quotationsDay = now.minusDays( this.quotationsDaysEarlier );
-		DateTimeFormatter dateFormat = DateTimeFormatter.ofPattern("ddMMyyyy");
-		String quotationsDayStr = quotationsDay.format(dateFormat);
+		String quotationsDayStr = this.getQuotationDay();
 		
 		String quotationsURL = String.format("%s/%s/COTAHIST_D%s.zip", this.b3BovespaRoot, "InstDados/SerHist", quotationsDayStr);
 		
-		ResponseEntity<byte[]> b3BovespaResponse = restTemplate.exchange(quotationsURL , HttpMethod.GET, null, byte[].class);
-		
-		byte[] quotationsZipContent = b3BovespaResponse.getBody();
-		
-		ByteArrayInputStream quotationsContentStream = new ByteArrayInputStream(quotationsZipContent);
-		ZipInputStream quotationsZipStream = new ZipInputStream(quotationsContentStream);
+		this.log.info(String.format("getting %s.zip quotations batch", quotationsDayStr));
 		
 		try {
+			
+			ResponseEntity<byte[]> b3BovespaResponse = restTemplate.exchange(quotationsURL , HttpMethod.GET, null, byte[].class);
+			
+			byte[] quotationsZipContent = b3BovespaResponse.getBody();
+			
+			ByteArrayInputStream quotationsContentStream = new ByteArrayInputStream(quotationsZipContent);
+			ZipInputStream quotationsZipStream = new ZipInputStream(quotationsContentStream);
 			
 			List<QuotationModel> quotations =  new ArrayList<QuotationModel>();
 			ZipEntry currentFile = null;
@@ -135,12 +138,41 @@ public class B3FBovespaQuotationPeriodicUpdater extends AbstractQuotationPeriodi
 			
 			return quotations;
 		
-		} catch (IOException e) {
-			
+		} 
+		catch (IOException e) 
+		{
 			e.printStackTrace();
+		} 
+		catch(HttpClientErrorException e) 
+		{
+			this.log.severe(String.format("fail on get quotations batch %s", quotationsDayStr));
+			currentQuotationsPullDate = currentQuotationsPullDate.minusDays( INTERVAL_QUOTATIONS_DAYS );
 		}
 		
-		return null;
+		return new ArrayList<QuotationModel>();
+	}
+
+	private String getQuotationDay() {
+		
+		if(currentQuotationsPullDate == null)
+		{
+			currentQuotationsPullDate = LocalDate.now();
+		}
+		
+		List<Date> registeredDays = this
+				.quotationsPropertiesValuesService
+				.getValues("DTPREG")
+				.fetch();
+		
+		while(registeredDays.contains(currentQuotationsPullDate)) 
+		{
+			currentQuotationsPullDate = currentQuotationsPullDate.minusDays( INTERVAL_QUOTATIONS_DAYS );
+		}
+		
+		DateTimeFormatter dateFormat = DateTimeFormatter.ofPattern("ddMMyyyy");
+		String quotationsDayStr = currentQuotationsPullDate.format(dateFormat);
+		
+		return quotationsDayStr;
 	}
 
 	private boolean isHistoricSeriesRegistry(String currentFileContent) {
@@ -156,12 +188,22 @@ public class B3FBovespaQuotationPeriodicUpdater extends AbstractQuotationPeriodi
 		
 		QuotationModel quotation = new QuotationModel();
 		
-		for(Entry<String, int[]> currentMapping : propertiesMappings.entrySet()) 
+		for(JsonNode currentPropertyConfig : this.configuration) 
 		{
-			String propertyName = currentMapping.getKey();
-			int[] mapping = currentMapping.getValue();
+			int offset = currentPropertyConfig.get("offset").asInt();
+			int limit = currentPropertyConfig.get("limit").asInt();
+			String propertyName = currentPropertyConfig.get("name").asText();
 			
-			String value = currentQuotationContent.substring(mapping[OFFSET], mapping[LIMIT]).trim();
+			String value = currentQuotationContent.substring(offset, limit).trim();
+			
+			JsonNode dateFormatPattern = null;
+			
+			if( ( dateFormatPattern = currentPropertyConfig.get("dateFormat") ) != null) 
+			{
+				TemporalAccessor valueAsDate = DateTimeFormatter.ofPattern( dateFormatPattern.asText() ).parse( value );
+				value = DateTimeFormatter.ISO_DATE.format( valueAsDate );
+			}
+			
 			
 			this.quotationsService.setPropertyValueToQuotation(propertyName, value, quotation);
 		}

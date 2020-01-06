@@ -38,5 +38,11 @@
 		"name":"PREOFV",
 		"offset":"134",
 		"limit":"146"
+	},
+	{
+		"name":"DTPREG",
+		"offset":"2",
+		"limit":"10",
+		"dateFormat":"yyyyMMdd"
 	}
 ]
