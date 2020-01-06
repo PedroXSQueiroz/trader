@@ -42,6 +42,11 @@ public class B3FBovespaQuotationPeriodicUpdater extends AbstractQuotationPeriodi
 	private static final Integer INTERVAL_QUOTATIONS_DAYS = 1;
 	private static LocalDate currentQuotationsPullDate;
 	
+	private static final String PROPERTIES_CONFIG_KEY = "propertiesConfig";
+	private static final String LIMIT_PULL_DATE_KEY = "limitPullDate";
+	
+	private static LocalDate limitPullDate;
+
 	private static final String HISTORIC_SERIES_REGISTER_TYPE = "01";
 	
 	private JsonNode configuration;
@@ -55,12 +60,8 @@ public class B3FBovespaQuotationPeriodicUpdater extends AbstractQuotationPeriodi
 	@Value(value = "${b3bovespa.root_path}")
 	private String b3BovespaRoot;
 	
-	@Value(value="${b3bovespa.quotations_days_earlier}")
-	private Integer quotationsDaysEarlier;
-	
 	@Autowired
 	private ResourceLoader resourceLoader;
-
 	
 	
 	@PostConstruct
@@ -71,6 +72,10 @@ public class B3FBovespaQuotationPeriodicUpdater extends AbstractQuotationPeriodi
 		
 		ObjectMapper quotationsPropertiesMapper = new ObjectMapper();
 		this.configuration = quotationsPropertiesMapper.readTree(inputStream);
+		
+		String limitPullDate = this.configuration.get(LIMIT_PULL_DATE_KEY).asText();
+		this.limitPullDate = LocalDate.from( DateTimeFormatter.ISO_DATE.parse(limitPullDate) ); 
+		
 	}
 	
 	@Override
@@ -137,7 +142,7 @@ public class B3FBovespaQuotationPeriodicUpdater extends AbstractQuotationPeriodi
 
 	private String getQuotationDay() {
 		
-		if(currentQuotationsPullDate == null)
+		if( currentQuotationsPullDate == null || currentQuotationsPullDate.isBefore( limitPullDate ) )
 		{
 			currentQuotationsPullDate = LocalDate.now();
 		}
@@ -150,6 +155,7 @@ public class B3FBovespaQuotationPeriodicUpdater extends AbstractQuotationPeriodi
 		while(registeredDays.contains(currentQuotationsPullDate)) 
 		{
 			currentQuotationsPullDate = currentQuotationsPullDate.minusDays( INTERVAL_QUOTATIONS_DAYS );
+			
 		}
 		
 		DateTimeFormatter dateFormat = DateTimeFormatter.ofPattern("ddMMyyyy");
@@ -171,7 +177,9 @@ public class B3FBovespaQuotationPeriodicUpdater extends AbstractQuotationPeriodi
 		
 		QuotationModel quotation = new QuotationModel();
 		
-		for(JsonNode currentPropertyConfig : this.configuration) 
+		JsonNode propertiesConfig = this.configuration.get(PROPERTIES_CONFIG_KEY);
+		
+		for(JsonNode currentPropertyConfig : propertiesConfig) 
 		{
 			int offset = currentPropertyConfig.get("offset").asInt();
 			int limit = currentPropertyConfig.get("limit").asInt();
