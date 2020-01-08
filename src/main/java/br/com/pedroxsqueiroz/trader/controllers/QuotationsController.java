@@ -21,11 +21,11 @@ public class QuotationsController {
 	
 	@GetMapping
 	public Page<QuotationModel> list(
-			@RequestParam(required = false, defaultValue = "0") Integer offset, 
-			@RequestParam(required = false, defaultValue = "50") Integer limit
+			@RequestParam(required = false, defaultValue = "0", name="page") Integer page, 
+			@RequestParam(required = false, defaultValue = "50", name="size") Integer size
 		)
 	{
-		return this.quotationsService.list(offset, limit);
+		return this.quotationsService.list(page, size);
 	}
 	
 }

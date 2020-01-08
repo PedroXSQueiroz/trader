@@ -103,9 +103,9 @@ public class QuotationsService {
 		
 	}
 
-	public Page<QuotationModel> list(Integer offset, Integer limit) {
+	public Page<QuotationModel> list(Integer page, Integer size) {
 		
-		return this.quotationsDao.findAll(PageRequest.of(offset, limit));
+		return this.quotationsDao.findAll(PageRequest.of(page, size));
 	
 	}
 	
