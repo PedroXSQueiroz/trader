@@ -2,7 +2,7 @@ CREATE TABLE IF NOT EXISTS quotations_properties(
 	id_quotation_property INT NOT NULL PRIMARY KEY AUTO_INCREMENT,
 	quotation_property_name NVARCHAR(256) NOT NULL,
 	quotation_property_type NVARCHAR(100) NOT NULL,
-	description NVARCHAR(MAX) NOT NULL
+	description NVARCHAR(1024) NOT NULL
 );
 
 CREATE TABLE IF NOT EXISTS quotations(
